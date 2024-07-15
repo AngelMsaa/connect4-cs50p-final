@@ -33,7 +33,6 @@ def get_board_size():
         except ValueError:
             print(f"{Fore.RED}Invalid input, please enter a number.{Fore.RED}")
 
-
 def clear():
     '''Clear the terminal.'''
     os.system('cls' if os.name == 'nt' else 'clear')
