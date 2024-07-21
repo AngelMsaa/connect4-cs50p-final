@@ -9,7 +9,7 @@ def main():
 
 
 def start_game():
-    '''Start the game by getting the board size.'''
+    """Get the board size from the user and return it."""
 
     print(f"WELCOME TO CONNECT 4")
     size = get_board_size()
@@ -22,12 +22,15 @@ def get_board_size():
     while True:
         try:
             size = input(f"\n{Fore.RESET}Enter the width of your board (min. 4, max. 50): {Fore.RESET}")
+
             if not 4 <= int(size) <= 50:
                 raise IndexError
+
             if size.isdigit():
                 return int(size)
             else:
                 raise ValueError
+
         except IndexError:
             print(f"{Fore.RED}Invalid size, please enter a number between 4 and 50.{Fore.RED}")
         except ValueError:
@@ -35,77 +38,113 @@ def get_board_size():
 
 
 def clear():
-    '''Clear the terminal.'''
+    """Clear the terminal."""
+
     os.system('cls' if os.name == 'nt' else 'clear')
 
 
 class Game:
-    '''
-    The main game class that manages the game loop and the turn system.
-    '''
+    """
+    The main game class that initiates the board, manages the game loop, the turn system, and checks for win conditions.
+    """
 
-    def __init__(self, size, input_test=input):
-        self.board = Board(self, size, input_test)
-        self.turn = "Yellow"
+    def __init__(self, size):
+        self.board = Board(self, size)
+        self.player_turn = "Yellow"
         self.turn_count_yellow = 0
         self.turn_count_red = 0
-        self.input_test = input_test  # To provide custom input during testing
         self.game_loop()
 
     def game_loop(self):
-        '''
-        The main game loop that manages the game turns and checks for a win or draw.
-        '''
+        """
+        The main game loop that manages the game loop and checks for a win or draw.
+        """
 
         while True:
             clear()
             print(f"\n{self.board}\n")
             self.board.place_coin()
+            self.turn_manager()
+
             if self.check_win():
                 break
             elif self.check_draw():
                 break
 
     def turn_manager(self):
-
-        '''
+        """
         Switch the turn between Yellow and Red.
-        '''
+        """
 
-        if self.turn == "Yellow":
+        if self.player_turn == "Yellow":
             self.turn_count_yellow += 1
-            self.turn = "Red"
+            self.player_turn = "Red"
         else:
-            self.turn = "Yellow"
+            self.player_turn = "Yellow"
             self.turn_count_red += 1
 
     def check_win(self):
-
-        '''
-        Check if there is a win by checking horizontal, vertical, and diagonal wins.
-        '''
-
-        coins_list = self.board.coins
-        for row_index, row_data in enumerate(coins_list):
+        """
+        Iterate over all cells in the board, checks if there is a coin, and then checks for either a horizontal, vertical, or diagonal win.
+        """
+        for row_index, row_data in enumerate(self.board.coins):
             for col_index, value in enumerate(row_data):
                 if "●" in value:
-                    if (check_horizontal_win(row_data, col_index) or
-                            check_vertical_win(coins_list, row_index, col_index) or
-                            check_diagonal_win(coins_list, row_index, col_index)):
-                        winner_turns = str((self.turn_count_yellow if self.turn == "Yellow" else self.turn_count_red) + 1)
+                    if (self.check_horizontal_win(row_index, col_index) or
+                            self.check_vertical_win(row_index, col_index) or
+                            self.check_diagonal_win(row_index, col_index)):
+                        winner_turns = str((self.turn_count_yellow if self.player_turn == "Yellow" else self.turn_count_red) + 1)
                         clear()
                         print(f"\n{self.board}\n")
-                        if self.turn == "Yellow":
+                        if self.player_turn == "Yellow":
                             print(f"{Fore.RED}RED{Fore.GREEN} won in {winner_turns} moves!")
-                        elif self.turn == "Red":
+                        elif self.player_turn == "Red":
                             print(f"{Fore.YELLOW}YELLOW{Fore.GREEN} won in {winner_turns} moves!")
                         return True
         return False
 
+    def check_horizontal_win(self, row_index, col_index):
+        """
+        Check if there is a horizontal win by checking the same row_index and the next 3 columns.
+        """
+        row_data = self.board.coins[row_index]
+        try:
+            if row_data[col_index] == row_data[col_index + 1] == row_data[col_index + 2] == row_data[col_index + 3] != "   ":
+                return True
+            return False
+        except IndexError:
+            return False
+
+    def check_vertical_win(self, row_index, col_index):
+        """
+        Check if there is a vertical win by checking the same col_index in the next 3 rows.
+        """
+        coins_list = self.board.coins
+        try:
+            if row_index + 3 < len(coins_list) and coins_list[row_index][col_index] == coins_list[row_index + 1][col_index] == coins_list[row_index + 2][col_index] == coins_list[row_index + 3][col_index] != "   ":
+                return True
+            return False
+        except IndexError:
+            return False
+
+    def check_diagonal_win(self, row_index, col_index):
+        """
+        Check if there is a diagonal win by checking the next 3 rows and columns in both directions.
+        """
+        coins_list = self.board.coins
+        try:
+            if row_index + 3 < len(coins_list) and col_index + 3 < len(coins_list[row_index]) and coins_list[row_index][col_index] == coins_list[row_index + 1][col_index + 1] == coins_list[row_index + 2][col_index + 2] == coins_list[row_index + 3][col_index + 3] != "   ":
+                return True
+            if row_index + 3 < len(coins_list) and col_index - 3 >= 0 and coins_list[row_index][col_index] == coins_list[row_index + 1][col_index - 1] == coins_list[row_index + 2][col_index - 2] == coins_list[row_index + 3][col_index - 3] != "   ":
+                return True
+            return False
+        except IndexError:
+            return False
+
     def check_draw(self):
-        '''
-        Check if the game is a draw.
-        '''
+        """
+        Check if the game is a draw by checking if all cells are filled with coins.
+        """
 
         if all("●" in value for row in self.board.coins for value in row):
             clear()
@@ -116,117 +155,70 @@ class Game:
 
 
 class Board:
-    '''
+    """
     The board class that manages the game board and the coin placement.
-    '''
+    """
 
-    def __init__(self, game, size=7, input_test=input):
+    def __init__(self, game, size=7):
         self.game = game
         self.size = int(size)
         self.board_height = 6
-        self.coins = [["   " for _ in range(self.size)] for _ in range(self.board_height)]
-        self.input_test = input_test
+        self.coins = [["   " for _ in range(self.size)] for _ in range(self.board_height)]  # Stores the columns, rows, and coins in the board
         self.table = SingleTable(self.coins)
         self.table.inner_row_border = True
 
     def __str__(self):
         return self.table.table
 
-    def place_coin(self, column=None):
-        '''
+    def place_coin(self):
+        """
         Place a coin in the selected column.
-        '''
+        """
 
-        print(f"Enter a column number to introduce your coin.\n{self.game.turn}'s turn.")
+        print(f"Enter a column number to introduce your coin.\n{self.game.player_turn}'s turn.")
         while True:
-            if column is None:
-                y = self.input_test(f"\n{Fore.RESET}>>> {Fore.RESET}")
-                try:
-                    y = int(y) - 1
-                except ValueError:
-                    clear()
-                    print(f"\n{self}\n")
-                    print(f"Enter a column number to introduce your coin.\n{self.game.turn}'s turn.")
-                    print(f"{Fore.RED}Invalid input, please enter a number between 1 and {self.size}.{Fore.RED}{Fore.RESET}")
-                    continue
-            else:
-                y = column
-                column = None
+            y = input(f"\n{Fore.RESET}>>> {Fore.RESET}")
+            try:
+                y = int(y) - 1  # Reduces the column number by 1 to match the index
+            except ValueError:
+                clear()
+                print(f"\n{self}\n")
+                print(f"Enter a column number to introduce your coin.\n{self.game.player_turn}'s turn.")
+                print(f"{Fore.RED}Invalid input, please enter a number between 1 and {self.size}.{Fore.RED}{Fore.RESET}")
+                continue
 
             if y < 0 or y >= len(self.coins[0]):
                 clear()
                 print(f"\n{self}\n")
-                print(f"Enter a column number to introduce your coin.\n{self.game.turn}'s turn.")
+                print(f"Enter a column number to introduce your coin.\n{self.game.player_turn}'s turn.")
                 print(f"{Fore.RED}Invalid column number, please enter a valid one (1 to {self.size}).{Fore.RED}{Fore.RESET}")
                 continue
 
-            if self.game.turn == "Yellow":
+            if self.game.player_turn == "Yellow":
                 coin = f"{Fore.YELLOW} ● {Fore.RESET}"
             else:
                 coin = f"{Fore.RED} ● {Fore.RESET}"
 
-            x = self.coin_gravity_x(y)
+            x = self.coin_gravity(y)
             if x == -1:
                 clear()
                 print(f"\n{self}\n")
-                print(f"Enter a column number to introduce your coin.\n{self.game.turn}'s turn.")
+                print(f"Enter a column number to introduce your coin.\n{self.game.player_turn}'s turn.")
                 print(f"{Fore.RED}This column is full, please choose another one.{Fore.RED}{Fore.RESET}")
                 continue
 
             self.coins[x][y] = coin
-            self.game.turn_manager()
             break
 
-    def coin_gravity_x(self, y):
-        '''
-        Apply gravity to the coin and return the row index.
-        '''
+    def coin_gravity(self, y):
+        """
+        Return the row index where the coin should be placed by checking from bottom to top the first empty cell.
+        """
 
         for i in range(5, -1, -1):
             if self.coins[i][y] == "   ":
                 return i
         return -1
-
-
-def check_horizontal_win(h_row_data, h_col_index):
-    '''
-    Check if there is a horizontal win.
-    '''
-
-    try:
-        if h_row_data[h_col_index] == h_row_data[h_col_index + 1] == h_row_data[h_col_index + 2] == h_row_data[h_col_index + 3] != "   ":
-            return True
-        return False
-    except IndexError:
-        return False
-
-
-def check_vertical_win(v_coins_list, v_row_index, v_col_index):
-    '''
-    Check if there is a vertical win.
-    '''
-
-    try:
-        if v_row_index + 3 < len(v_coins_list) and v_coins_list[v_row_index][v_col_index] == v_coins_list[v_row_index + 1][v_col_index] == v_coins_list[v_row_index + 2][v_col_index] == v_coins_list[v_row_index + 3][v_col_index] != "   ":
-            return True
-        return False
-    except IndexError:
-        return False
-
-
-def check_diagonal_win(d_coins_list, d_row_index, d_col_index):
-    '''
-    Check if there is a diagonal win.
-    '''
-
-    try:
-        if d_row_index + 3 < len(d_coins_list) and d_col_index + 3 < len(d_coins_list[d_row_index]) and d_coins_list[d_row_index][d_col_index] == d_coins_list[d_row_index + 1][d_col_index + 1] == d_coins_list[d_row_index + 2][d_col_index + 2] == d_coins_list[d_row_index + 3][d_col_index + 3] != "   ":
-            return True
-        if d_row_index + 3 < len(d_coins_list) and d_col_index - 3 >= 0 and d_coins_list[d_row_index][d_col_index] == d_coins_list[d_row_index + 1][d_col_index - 1] == d_coins_list[d_row_index + 2][d_col_index - 2] == d_coins_list[d_row_index + 3][d_col_index - 3] != "   ":
-            return True
-        return False
-    except IndexError:
-        return False
 
 
 if __name__ == '__main__':
