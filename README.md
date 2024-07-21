@@ -1,5 +1,5 @@
 # Connect 4
-#### Video Demo:  <URL HERE>
+#### Video Demo:  https://youtu.be/2oSegCaEf5Q
 ## How to play
 
 1. Clone the repository
