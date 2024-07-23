@@ -50,7 +50,7 @@ There's also a utility function called `clear_screen` that clears the terminal s
   limit myself to the terminal to stay true to the core of the course and to not overcomplicate the project.
 
 
-- **Checking for a win condition**: Every time a user places a coin, the game iterates over all placed coins to check if there are win conditions. Whilst potentially less eficient, I thought this was less error prone as it would be easier to maintain and understand. Perfomance should not be 
+- **Checking for a win condition**: Every time a user places a coin, the game iterates over all placed coins to check if there are win conditions. Whilst potentially less eficient, I thought this was less error, and easier tomaintain and understand. Perfomance should not be 
   a concern, as the game is not too CPU intensive.
 
 
